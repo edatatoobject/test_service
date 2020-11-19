@@ -6,7 +6,8 @@ namespace TestService.Data
     public class ApplicationDbContext : DbContext
     {
         public DbSet<Test> Tests { get; set; }
-        public DbSet<TestAnswer> TestAnswers { get; set; }
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<Answer> Answers { get; set; }
         
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -18,7 +19,8 @@ namespace TestService.Data
             base.OnModelCreating(builder);
             
             builder.Entity<Test>().ToTable("Tests", "Test");
-            builder.Entity<TestAnswer>().ToTable("TestAnswers", "Test");
+            builder.Entity<Question>().ToTable("Questions", "Test");
+            builder.Entity<Answer>().ToTable("Answers", "Test");
         }
     }
 }

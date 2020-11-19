@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
 using TestService.Controllers;
 using TestService.Data;
+using TestService.Dto;
 using TestService.Services;
 using TestService.Services.Interfaces;
 using Xunit;
@@ -28,16 +30,6 @@ namespace Test
 
 
         [Fact]
-        public async Task CheckCache()
-        {
-            var responce = _testController.TestCache(UserName);
-
-            var cachedUserName = _cacheService.Get<string>(responce.Value);
-
-            Assert.Equal(UserName, cachedUserName);
-        }
-
-        [Fact]
         public async Task SuccessfulTest()
         {
 
@@ -50,12 +42,12 @@ namespace Test
                 var question = _testController.GetQuestion(currentTest.Id, questionIndex);
 
                 var answerResponse = _testController.SendAnswer(initializeTestDto.SessionId, currentTest.Id, questionIndex,
-                    new Random().Next(0, question.Answers));
+                    new Random().Next(0, question.Value.AnswersCount));
             }
 
             var complete = _testController.CompleteTest(initializeTestDto.SessionId, currentTest.Id);
 
-            var cachedUser = _cacheService.Get<string>(initializeTestDto.SessionId);
+            var cachedUser = _cacheService.Get<TestInitializeResponse>(initializeTestDto.SessionId);
 
             if (cachedUser != null)
             {
@@ -66,10 +58,10 @@ namespace Test
         [Fact]
         public async Task CancelTask()
         {
-            var test = GetFirstTest();
+            var currentTest = GetFirstTest();
             var initializeTestDto = _testController.InitializeTest(UserName, currentTest.Id).Value;
 
-            _testController.CancelTest(initializeTestDto.SessionId);
+            _testController.CancelTest(initializeTestDto.SessionId, currentTest.Id);
             
             var cachedUser = _cacheService.Get<string>(initializeTestDto.SessionId);
 
@@ -79,10 +71,10 @@ namespace Test
             }
         }
 
-        private TaskDto GetFirstTest()
+        private TestService.Models.Test GetFirstTest()
         {
-            var tests = _testController.GetAllTests();
-            if (tests == null && !tests.Any())
+            var tests = _testController.GetAllTests().Value;
+            if (tests == null || !tests.Any())
             {
                 throw new NullReferenceException("Test list is empty");
             }
