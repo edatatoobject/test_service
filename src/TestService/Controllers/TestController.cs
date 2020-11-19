@@ -31,7 +31,7 @@ namespace TestService.Controllers
         {
             return _testRepository.GetRange();
         }
-        
+
         [HttpGet]
         [Route("Initialize")]
         public ActionResult<TestInitializeResponse> InitializeTest(string userName, int testId)
@@ -136,20 +136,8 @@ namespace TestService.Controllers
 
         private Test GetTest(int testId)
         {
-            var test = GetTestFromCache(testId);
-
-            if (test == null)
-            {
-                //get test from database and save in cache
-                test = _testRepository.GetTestWithQuestions(testId);
-
-                if (test == null)
-                {
-                    return null;
-                }
-
-                SetTestInCache(test);
-            }
+            //get test from database and save in cache
+            var test = _testRepository.GetTestWithQuestions(testId);
 
             return test;
         }
@@ -194,7 +182,7 @@ namespace TestService.Controllers
             for (int answerIndex = 0; answerIndex < questionCount; answerIndex++)
             {
                 _cacheService.Remove($"{sessionId}{answerIndex}");
-            }   
+            }
         }
     }
 }

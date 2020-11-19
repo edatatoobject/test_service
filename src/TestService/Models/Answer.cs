@@ -1,5 +1,8 @@
-﻿namespace TestService.Models
+﻿using System;
+
+namespace TestService.Models
 {
+    [Serializable]
     public class Answer
     {
         public int Id { get; private set; }

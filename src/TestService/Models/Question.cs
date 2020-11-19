@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace TestService.Models
 {
+    [Serializable]
     public class Question
     {
         public int Id { get; private set; }
@@ -13,7 +14,7 @@ namespace TestService.Models
         public int TestId { get; private set; }
         public Test Test { get; private set; }
 
-        public ICollection<Answer> Answers;
+        public ICollection<Answer> Answers { get; private set; }
 
         private Question() { }
 

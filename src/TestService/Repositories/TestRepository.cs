@@ -17,8 +17,8 @@ namespace TestService.Repositories
 
         public Test GetTestWithQuestions(int testId)
         {
-            return _context.Tests.Where(t => t.Id == testId).Include(t => t.Questions).ThenInclude(q => q.Answers)
-                .FirstOrDefault();
+            return _context.Tests.Include(t => t.Questions).ThenInclude(q => q.Answers)
+                .FirstOrDefault(t => t.Id == testId);
         }
 
         public List<Test> GetRange()

@@ -1,5 +1,8 @@
-﻿namespace TestService.Dto
+﻿using System;
+
+namespace TestService.Dto
 {
+    [Serializable]
     public class TestInitializeResponse
     {
         public string SessionId { get; set; }

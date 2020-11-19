@@ -24,9 +24,9 @@ namespace TestService.Data
             builder.Entity<Answer>().ToTable("Answers", "Test");
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(Startup.Configuration.GetConnectionString("DefaultConnection"));
-        }
+        // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        // {
+        //     optionsBuilder.UseNpgsql(Startup.Configuration.GetConnectionString("DefaultConnection"));
+        // }
     }
 }
