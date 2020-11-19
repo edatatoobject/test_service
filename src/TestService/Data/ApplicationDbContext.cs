@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using TestService.Models;
 
 namespace TestService.Data
@@ -8,7 +9,7 @@ namespace TestService.Data
         public DbSet<Test> Tests { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
-        
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -17,10 +18,15 @@ namespace TestService.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            
+
             builder.Entity<Test>().ToTable("Tests", "Test");
             builder.Entity<Question>().ToTable("Questions", "Test");
             builder.Entity<Answer>().ToTable("Answers", "Test");
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseNpgsql(Startup.Configuration.GetConnectionString("DefaultConnection"));
         }
     }
 }

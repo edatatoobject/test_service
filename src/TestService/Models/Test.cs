@@ -11,8 +11,9 @@ namespace TestService.Models
         public string Name { get; private set; }
         public ICollection<Question> Questions { get; private set; }
 
-        public Test(string name, ICollection<Question> questions = null)
+        public Test(int id, string name, ICollection<Question> questions = null)
         {
+            Id = id;
             Name = name;
             Questions = questions;
         }

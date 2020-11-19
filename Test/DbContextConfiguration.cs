@@ -15,6 +15,8 @@ namespace Test
 
             ApplicationDbContext dbContext = new ApplicationDbContext(optionsBuilder.Options);
 
+            ApplicationDbContextSeed.SeedAsync(dbContext);
+
             return dbContext;
         }
     }
