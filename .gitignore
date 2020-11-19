@@ -1,0 +1,7 @@
+/Test/bin/
+/Test/obj/
+/src/TestService/bin/
+/src/TestService/obj/
+/src/TestService/appsettings.Development.json
+/test_service.sln.DotSettings.user
+/.idea/
