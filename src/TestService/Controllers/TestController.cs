@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using TestService.Data;
 using TestService.Dto;
 using TestService.Models;
+using TestService.Redis;
 using TestService.Repositories;
 using TestService.Services.Interfaces;
 
@@ -16,12 +17,12 @@ namespace TestService.Controllers
     [Route("Api/[controller]")]
     public class TestController : ControllerBase
     {
-        private readonly ICacheService _cacheService;
+        private readonly TestCacheExchange _testCacheExchange;
         private readonly TestRepository _testRepository;
 
         public TestController(ICacheService cacheService, ApplicationDbContext context)
         {
-            _cacheService = cacheService;
+            _testCacheExchange = new TestCacheExchange(cacheService);
             _testRepository = new TestRepository(context);
         }
 
@@ -45,13 +46,13 @@ namespace TestService.Controllers
                 return BadRequest("Test not found");
             }
 
-            var testInitializeResponseDto = new TestInitializeResponse
+            var testInitializeResponse = new TestInitializeResponse
             {
                 SessionId = sessionId, TestName = test.Name, UserName = userName,
                 NumberOfQuestion = test.GetNumberOfQuestions()
             };
 
-            _cacheService.Set(sessionId, testInitializeResponseDto, TimeSpan.FromHours(1));
+            _testCacheExchange.SetSessioCache(sessionId, testInitializeResponse);
 
             return new TestInitializeResponse
                 {SessionId = sessionId, TestName = test.Name, NumberOfQuestion = test.GetNumberOfQuestions()};
@@ -94,7 +95,7 @@ namespace TestService.Controllers
                 return BadRequest("Answer index not found");
             }
 
-            SetAnswerInCache(sessionId, questionIndex, answerIndex);
+            _testCacheExchange.SetAnswerInCache(sessionId, questionIndex, answerIndex);
 
             return Ok();
         }
@@ -107,7 +108,7 @@ namespace TestService.Controllers
 
             int questionsCount = test.GetNumberOfQuestions();
 
-            var answers = GetAnswersFromCache(sessionId, questionsCount);
+            var answers = _testCacheExchange.GetAnswersFromCache(sessionId, questionsCount);
 
             var correctAnswers = 0;
             for (int questionIndex = 0; questionIndex < test.GetNumberOfQuestions(); questionIndex++)
@@ -119,7 +120,7 @@ namespace TestService.Controllers
                 }
             }
 
-            RemoveSessionCache(sessionId);
+            _testCacheExchange.RemoveSessionCache(sessionId);
 
             return new TestCompleteDto {QuestionsCount = questionsCount, CorrectAnswers = correctAnswers};
         }
@@ -129,8 +130,8 @@ namespace TestService.Controllers
         public ActionResult CancelTest(string sessionId, int testId)
         {
             var test = GetTest(testId);
-            RemoveAnswersFromCache(sessionId, test.GetNumberOfQuestions());
-            RemoveSessionCache(sessionId);
+            _testCacheExchange.RemoveAnswersFromCache(sessionId, test.GetNumberOfQuestions());
+            _testCacheExchange.RemoveSessionCache(sessionId);
             return Ok();
         }
 
@@ -140,49 +141,6 @@ namespace TestService.Controllers
             var test = _testRepository.GetTestWithQuestions(testId);
 
             return test;
-        }
-
-        private void RemoveSessionCache(string sessionId)
-        {
-            _cacheService.Remove(sessionId);
-        }
-
-        private Test GetTestFromCache(int testId)
-        {
-            return _cacheService.Get<Test>($"test{testId.ToString()}");
-        }
-
-        private void SetTestInCache(Test test)
-        {
-            _cacheService.Set($"test{test.Id.ToString()}", test);
-        }
-
-        private void SetAnswerInCache(string sessionId, int questionIndex, int answerIndex)
-        {
-            _cacheService.Set($"{sessionId}{questionIndex.ToString()}", answerIndex, TimeSpan.FromHours(1));
-        }
-
-        private List<int> GetAnswersFromCache(string sessionId, int questionCount)
-        {
-            var answers = new List<int>();
-
-            for (int questionIndex = 0; questionIndex < questionCount; questionIndex++)
-            {
-                string key = $"{sessionId}{questionIndex.ToString()}";
-                int answerIndex = _cacheService.Get<int>(key);
-                answers.Add(answerIndex);
-                _cacheService.Remove(key);
-            }
-
-            return answers;
-        }
-
-        private void RemoveAnswersFromCache(string sessionId, int questionCount)
-        {
-            for (int answerIndex = 0; answerIndex < questionCount; answerIndex++)
-            {
-                _cacheService.Remove($"{sessionId}{answerIndex}");
-            }
         }
     }
 }
